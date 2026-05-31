@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frozen Net - 活动接龙</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-2xl mx-auto p-6">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-blue-600 flex items-center justify-center gap-3">
+                ❄️ Frozen Net 活动接龙
+            </h1>
+            <p class="text-gray-600 mt-2 text-lg">欢迎加入 Frozen Net 活动！</p>
+        </div>
+
+        <!-- Status Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-2xl p-5 card shadow">
+                <div class="text-3xl mb-2">🎟️</div>
+                <div class="text-sm text-gray-500">总名额</div>
+                <div id="total-slots" class="text-4xl font-bold text-blue-600">—</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 card shadow">
+                <div class="text-3xl mb-2">✅</div>
+                <div class="text-sm text-gray-500">已报名</div>
+                <div id="signed-up" class="text-4xl font-bold text-emerald-600">0</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 card shadow">
+                <div class="text-3xl mb-2">⏳</div>
+                <div class="text-sm text-gray-500">Waitlist</div>
+                <div id="waitlist" class="text-4xl font-bold text-amber-600">0</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 card shadow">
+                <div class="text-3xl mb-2">💰</div>
+                <div class="text-sm text-gray-500">已付款</div>
+                <div id="paid" class="text-4xl font-bold text-purple-600">0</div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 mb-8">
+            <button onclick="signUp()" 
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-2xl text-lg transition">
+                🚀 我要报名
+            </button>
+            <button onclick="joinWaitlist()" 
+                    class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-4 rounded-2xl text-lg transition">
+                ⏳ 加入Waitlist
+            </button>
+        </div>
+
+        <!-- Participant List -->
+        <div class="bg-white rounded-3xl p-6 shadow mb-8">
+            <h2 class="font-semibold text-xl mb-4 flex items-center gap-2">
+                📋 报名列表
+            </h2>
+            <div id="participant-list" class="space-y-3 min-h-[200px]">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="bg-white rounded-3xl p-6 shadow">
+            <h2 class="font-semibold text-xl mb-4">📊 报名概况</h2>
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <div id="summary-signed" class="text-3xl font-bold text-emerald-600">0</div>
+                    <div class="text-sm text-gray-500">已报名</div>
+                </div>
+                <div>
+                    <div id="summary-wait" class="text-3xl font-bold text-amber-600">0</div>
+                    <div class="text-sm text-gray-500">Waitlist</div>
+                </div>
+                <div>
+                    <div id="summary-paid" class="text-3xl font-bold text-purple-600">0</div>
+                    <div class="text-sm text-gray-500">已付款</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copy Button -->
+        <button onclick="copySummary()" 
+                class="mt-8 w-full bg-gray-800 hover:bg-black text-white py-4 rounded-2xl font-medium flex items-center justify-center gap-2">
+            <i class="fa-solid fa-copy"></i> 复制接龙文本
+        </button>
+    </div>
+
+    <script>
+        let participants = [];
+        let totalSlots = 20; // Change this to your desired number of slots
+
+        function signUp() {
+            const name = prompt("请输入你的名字（可加备注）:");
+            if (!name) return;
+            
+            participants.push({
+                name: name.trim(),
+                status: "signed",
+                paid: false
+            });
+            updateUI();
+        }
+
+        function joinWaitlist() {
+            const name = prompt("请输入你的名字（Waitlist）:");
+            if (!name) return;
+            
+            participants.push({
+                name: name.trim(),
+                status: "waitlist",
+                paid: false
+            });
+            updateUI();
+        }
+
+        function updateUI() {
+            // Update counts
+            const signed = participants.filter(p => p.status === "signed").length;
+            const wait = participants.filter(p => p.status === "waitlist").length;
+            const paid = participants.filter(p => p.paid).length;
+
+            document.getElementById("signed-up").textContent = signed;
+            document.getElementById("waitlist").textContent = wait;
+            document.getElementById("paid").textContent = paid;
+            document.getElementById("total-slots").textContent = totalSlots;
+
+            document.getElementById("summary-signed").textContent = signed;
+            document.getElementById("summary-wait").textContent = wait;
+            document.getElementById("summary-paid").textContent = paid;
+
+            // Render list
+            const list = document.getElementById("participant-list");
+            list.innerHTML = "";
+
+            participants.forEach((p, i) => {
+                const div = document.createElement("div");
+                div.className = `flex items-center justify-between p-4 rounded-2xl ${p.status === "signed" ? "bg-emerald-50" : "bg-amber-50"}`;
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">${p.status === "signed" ? "✅" : "⏳"}</span>
+                        <span class="font-medium">${p.name}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="togglePaid(${i})" class="text-sm px-3 py-1 rounded-xl ${p.paid ? 'bg-purple-100 text-purple-700' : 'bg-gray-100'}">
+                            ${p.paid ? '已付' : '未付'}
+                        </button>
+                        <button onclick="removeParticipant(${i})" class="text-red-500 hover:text-red-700">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function togglePaid(index) {
+            participants[index].paid = !participants[index].paid;
+            updateUI();
+        }
+
+        function removeParticipant(index) {
+            if (confirm("确定删除此人？")) {
+                participants.splice(index, 1);
+                updateUI();
+            }
+        }
+
+        function copySummary() {
+            const signed = participants.filter(p => p.status === "signed").length;
+            const wait = participants.filter(p => p.status === "waitlist").length;
+            
+            let text = `❄️ Frozen Net 活动接龙\n\n`;
+            text += `🎟️ 名额：${totalSlots}\n`;
+            text += `✅ 已报名：${signed}\n`;
+            text += `⏳ Waitlist：${wait}\n\n`;
+            text += `报名列表：\n`;
+            
+            participants.forEach(p => {
+                text += `${p.status === "signed" ? "✅" : "⏳"} ${p.name} ${p.paid ? "(已付)" : ""}\n`;
+            });
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert("✅ 已复制到剪贴板！");
+            });
+        }
+
+        // Initial render
+        updateUI();
+    </script>
+</body>
+</html>
